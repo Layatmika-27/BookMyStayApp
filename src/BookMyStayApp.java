@@ -1,5 +1,4 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 // Abstract Room Class
 abstract class Room {
@@ -40,31 +39,26 @@ abstract class Room {
     }
 }
 
-// Single Room
+// Concrete Room Classes
 class SingleRoom extends Room {
-
     public SingleRoom() {
         super("Single Room", 1, 200, 100);
     }
 }
 
-// Double Room
 class DoubleRoom extends Room {
-
     public DoubleRoom() {
         super("Double Room", 2, 350, 180);
     }
 }
 
-// Suite Room
 class SuiteRoom extends Room {
-
     public SuiteRoom() {
         super("Suite Room", 3, 500, 350);
     }
 }
 
-// Centralized Inventory Management
+// Centralized Inventory
 class RoomInventory {
 
     private HashMap<String, Integer> availability;
@@ -72,28 +66,43 @@ class RoomInventory {
     public RoomInventory() {
         availability = new HashMap<>();
 
-        // Initialize inventory
         availability.put("Single Room", 5);
         availability.put("Double Room", 3);
-        availability.put("Suite Room", 2);
+        availability.put("Suite Room", 0); // Example unavailable room
     }
 
-    // Retrieve availability
     public int getAvailability(String roomType) {
         return availability.getOrDefault(roomType, 0);
     }
 
-    // Update availability
-    public void updateAvailability(String roomType, int count) {
-        availability.put(roomType, count);
+    public Map<String, Integer> getAllAvailability() {
+        return availability;
+    }
+}
+
+// Search Service (Read-Only Access)
+class SearchService {
+
+    private RoomInventory inventory;
+
+    public SearchService(RoomInventory inventory) {
+        this.inventory = inventory;
     }
 
-    // Display full inventory
-    public void displayInventory() {
-        System.out.println("---- Current Room Inventory ----");
+    public void searchAvailableRooms(List<Room> rooms) {
 
-        for (Map.Entry<String, Integer> entry : availability.entrySet()) {
-            System.out.println(entry.getKey() + " Available: " + entry.getValue());
+        System.out.println("---- Available Rooms ----");
+
+        for (Room room : rooms) {
+
+            int available = inventory.getAvailability(room.getRoomType());
+
+            // Defensive validation (filter unavailable rooms)
+            if (available > 0) {
+                room.displayRoomDetails();
+                System.out.println("Available Rooms: " + available);
+                System.out.println();
+            }
         }
     }
 }
@@ -105,31 +114,22 @@ public class BookMyStayApp {
 
         System.out.println("Welcome to BookMyStay\n");
 
-        // Create Room Objects
-        Room singleRoom = new SingleRoom();
-        Room doubleRoom = new DoubleRoom();
-        Room suiteRoom = new SuiteRoom();
+        // Initialize room objects
+        List<Room> rooms = new ArrayList<>();
 
-        // Initialize Inventory
+        rooms.add(new SingleRoom());
+        rooms.add(new DoubleRoom());
+        rooms.add(new SuiteRoom());
+
+        // Initialize inventory
         RoomInventory inventory = new RoomInventory();
 
-        System.out.println("---- Room Details ----");
+        // Initialize search service
+        SearchService searchService = new SearchService(inventory);
 
-        singleRoom.displayRoomDetails();
-        System.out.println("Available: " + inventory.getAvailability(singleRoom.getRoomType()));
-        System.out.println();
+        // Guest performs search
+        searchService.searchAvailableRooms(rooms);
 
-        doubleRoom.displayRoomDetails();
-        System.out.println("Available: " + inventory.getAvailability(doubleRoom.getRoomType()));
-        System.out.println();
-
-        suiteRoom.displayRoomDetails();
-        System.out.println("Available: " + inventory.getAvailability(suiteRoom.getRoomType()));
-        System.out.println();
-
-        // Display centralized inventory
-        inventory.displayInventory();
-
-        System.out.println("\nApplication Terminated.");
+        System.out.println("Search completed. System state unchanged.");
     }
 }
